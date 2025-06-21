@@ -2,18 +2,23 @@ package Controller;
 
 import Repository.CurrencyRepository;
 import Service.CurrencyConverterService;
-import View.CurrencyConverterView;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class CurrencyController {
 
     private final CurrencyConverterService converterService;
 
-    public CurrencyController(CurrencyConverterView view, CurrencyConverterService service) {
+    public CurrencyController() {
         CurrencyRepository apiClient = null;
         this.converterService = new CurrencyConverterService(apiClient);
     }
+
+    public Set<String> getAvailableCurrencies(String baseCurrency) throws IOException, InterruptedException {
+        return converterService.getAvailableCurrencies(baseCurrency);
+    }
+
 
     public double convert(String sourceCurrency, String targetCurrency, double amount) {
         try {

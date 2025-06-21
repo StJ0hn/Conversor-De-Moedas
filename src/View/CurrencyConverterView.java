@@ -1,43 +1,62 @@
 package View;
 
 import Controller.CurrencyController;
-import Service.CurrencyConverterService;
 
+import java.io.IOException;
 import java.util.Scanner;
+import java.util.Set;
 
 public class CurrencyConverterView {
 
     private final CurrencyController controller;
+    private final Scanner scanner = new Scanner(System.in);
 
     public CurrencyConverterView() {
-        CurrencyConverterView view = null;
-        CurrencyConverterService service = null;
-        this.controller = new CurrencyController(view, service);
+        this.controller = new CurrencyController();
+    }
+
+    private String requestValidCurrency(String message, Set<String> availableCurrencies) {
+        String currency;
+        while (true) {
+            System.out.print(message);
+            currency = scanner.nextLine().toUpperCase();
+
+            if (availableCurrencies.contains(currency)) {
+                break;
+            } else {
+                System.out.println("Invalid currency! Available options: " + availableCurrencies);
+            }
+        }
+        return currency;
     }
 
     public void start() {
-        Scanner scanner = new Scanner(System.in);
+        System.out.println("=== Currency Converter ===");
 
-        System.out.println("=== Conversor de Moedas ===");
+        try {
+            Set<String> availableCurrencies = controller.getAvailableCurrencies("USD");
 
-        System.out.print("Digite a moeda de origem (ex: USD): ");
-        String sourceCurrency = scanner.nextLine().toUpperCase();
+            String sourceCurrency = requestValidCurrency("Enter source currency (e.g., USD): ", availableCurrencies);
+            String targetCurrency = requestValidCurrency("Enter target currency (e.g., BRL): ", availableCurrencies);
 
-        System.out.print("Digite a moeda de destino (ex: BRL): ");
-        String targetCurrency = scanner.nextLine().toUpperCase();
+            System.out.print("Enter amount to convert: ");
+            double amount = Double.parseDouble(scanner.nextLine());
 
-        System.out.print("Digite o valor a ser convertido: ");
-        double amount = scanner.nextDouble();
+            double result = controller.convert(sourceCurrency, targetCurrency, amount);
 
-        double result = controller.convert(sourceCurrency, targetCurrency, amount);
+            if (result >= 0) {
+                System.out.printf("Result: %.2f %s equals %.2f %s%n", amount, sourceCurrency, result, targetCurrency);
+            } else {
+                System.out.println("Conversion failed. Please try again.");
+            }
 
-        if (result >= 0) {
-            System.out.printf("Resultado: %.2f %s equivalem a %.2f %s%n", amount, sourceCurrency, result, targetCurrency);
-        } else {
-            System.out.println("Falha na conversão. Tente novamente.");
+        } catch (IOException | InterruptedException e) {
+            System.out.println("API error: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount! Please enter a valid number.");
+        } finally {
+            scanner.close();
         }
-
-        scanner.close();
     }
 
     public static void main(String[] args) {
